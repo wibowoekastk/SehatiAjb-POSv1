@@ -7,7 +7,6 @@ use App\Models\Pengeluaran;
 use App\Models\Penjualan;
 use Illuminate\Http\Request;
 use PDF;
-
 class LaporanController extends Controller
 {
     public function index(Request $request)
@@ -22,12 +21,6 @@ class LaporanController extends Controller
 
         return view('laporan.index', compact('tanggalAwal', 'tanggalAkhir'));
     }
-
-    /**
-     * Metode ini sekarang hanya mengambil data mentah (angka) dari database.
-     * Pemformatan akan dilakukan di metode 'data()' untuk Datatables
-     * dan di view 'laporan.pdf' untuk PDF.
-     */
     public function getData($awal, $akhir)
     {
         $data = array();
@@ -53,15 +46,10 @@ class LaporanController extends Controller
 
         return $data;
     }
-
-    /**
-     * Metode ini untuk menyiapkan data yang akan ditampilkan di halaman web (Datatables).
-     * Data mentah akan diformat di sini.
-     */
     public function data($awal, $akhir)
     {
         $rawData = $this->getData($awal, $akhir);
-        
+
         $data = array();
         $no = 1;
         $total_pendapatan = 0;
@@ -77,7 +65,6 @@ class LaporanController extends Controller
             $data[] = $row;
             $total_pendapatan += $rawRow['pendapatan'];
         }
-
         // Menambahkan baris total untuk tampilan Datatables
         $data[] = [
             'DT_RowIndex' => '',
@@ -94,16 +81,12 @@ class LaporanController extends Controller
             ->make(true);
     }
 
-    /**
-     * Metode ini untuk membuat file PDF.
-     * Mengirimkan data mentah ke view.
-     */
     public function exportPDF($awal, $akhir)
     {
         $data = $this->getData($awal, $akhir);
         $pdf  = PDF::loadView('laporan.pdf', compact('awal', 'akhir', 'data'));
         $pdf->setPaper('a4', 'portrait');
-        
+
         return $pdf->stream('Laporan-pendapatan-'. date('Y-m-d-his') .'.pdf');
     }
 }

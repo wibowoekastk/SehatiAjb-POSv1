@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Kategori;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class KategoriController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View
      */
-    public function index()
+    public function index(): View
     {
         return view('kategori.index');
     }
@@ -43,16 +46,17 @@ class KategoriController extends Controller
      */
     public function create()
     {
-        //
+        // Fungsi ini tidak digunakan dalam alur AJAX, kembalikan 404
+        abort(404);
     }
 
     /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         $kategori = new Kategori();
         $kategori->nama_kategori = $request->nama_kategori;
@@ -65,9 +69,9 @@ class KategoriController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id)
+    public function show($id): JsonResponse
     {
         $kategori = Kategori::find($id);
 
@@ -82,7 +86,8 @@ class KategoriController extends Controller
      */
     public function edit($id)
     {
-        //
+        // Fungsi ini tidak digunakan dalam alur AJAX, kembalikan 404
+        abort(404);
     }
 
     /**
@@ -90,15 +95,15 @@ class KategoriController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): JsonResponse
     {
         $kategori = Kategori::find($id);
         $kategori->nama_kategori = $request->nama_kategori;
-        $kategori->update();
+        $kategori->save(); // Perbaikan: gunakan save() setelah mengatur properti
 
-        return response()->json('Data berhasil disimpan', 200);
+        return response()->json('Data berhasil diperbarui', 200);
     }
 
     /**
@@ -107,7 +112,7 @@ class KategoriController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($id): Response
     {
         $kategori = Kategori::find($id);
         $kategori->delete();

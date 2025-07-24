@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         return view('user.index');
     }
@@ -32,123 +35,104 @@ class UserController extends Controller
             ->make(true);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
     public function create()
     {
-        //
+        abort(404);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+
+    public function store(Request $request): JsonResponse
     {
-        $user = new User();
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->password = bcrypt($request->password);
-        $user->level = 2;
-        $user->foto = '/img/user.jpg';
-        $user->save();
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'level' => 2,
+            'foto' => '/img/user.jpg',
+        ]);
 
         return response()->json('Data berhasil disimpan', 200);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
+
+    public function show($id): JsonResponse
     {
         $user = User::find($id);
-
         return response()->json($user);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+
     public function edit($id)
     {
-        //
+        abort(404);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): JsonResponse
     {
         $user = User::find($id);
-        $user->name = $request->name;
-        $user->email = $request->email;
-        if ($request->has('password') && $request->password != "") 
-            $user->password = bcrypt($request->password);
-        $user->update();
+        if (!$user) {
+            return response()->json('Data tidak ditemukan', 404);
+        }
 
-        return response()->json('Data berhasil disimpan', 200);
+        $data = [
+            'name' => $request->name,
+            'email' => $request->email,
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
+
+        $user->update($data);
+
+        return response()->json('Data berhasil diperbarui', 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+    public function destroy($id): Response
     {
-        $user = User::find($id)->delete();
+        $user = User::find($id);
+        if ($user) {
+            $user->delete();
+        }
 
         return response(null, 204);
     }
 
-    public function profil()
+    public function profil(): View
     {
         $profil = auth()->user();
         return view('user.profil', compact('profil'));
     }
 
-    public function updateProfil(Request $request)
+    public function updateProfil(Request $request): JsonResponse
     {
         $user = auth()->user();
-        
-        $user->name = $request->name;
-        if ($request->has('password') && $request->password != "") {
-            if (Hash::check($request->old_password, $user->password)) {
-                if ($request->password == $request->password_confirmation) {
-                    $user->password = bcrypt($request->password);
-                } else {
-                    return response()->json('Konfirmasi password tidak sesuai', 422);
-                }
-            } else {
+
+        // Siapkan data dalam array
+        $data = $request->except('password', 'old_password', 'password_confirmation', 'foto');
+
+        // Validasi dan update password jika diisi
+        if ($request->filled('password')) {
+            if (!Hash::check($request->old_password, $user->password)) {
                 return response()->json('Password lama tidak sesuai', 422);
             }
+            if ($request->password != $request->password_confirmation) {
+                return response()->json('Konfirmasi password tidak sesuai', 422);
+            }
+            $data['password'] = bcrypt($request->password);
         }
 
+        // Handle upload file foto
         if ($request->hasFile('foto')) {
             $file = $request->file('foto');
             $nama = 'logo-' . date('YmdHis') . '.' . $file->getClientOriginalExtension();
             $file->move(public_path('/img'), $nama);
-
-            $user->foto = "/img/$nama";
+            $data['foto'] = "/img/$nama";
         }
 
-        $user->update();
+        // Update user dengan semua data yang sudah disiapkan
+        $user->update($data);
 
         return response()->json($user, 200);
     }

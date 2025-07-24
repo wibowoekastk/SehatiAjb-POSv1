@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Supplier;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 class SupplierController extends Controller
 {
@@ -31,76 +33,39 @@ class SupplierController extends Controller
             ->make(true);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         $supplier = Supplier::create($request->all());
 
         return response()->json('Data berhasil disimpan', 200);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
+    public function show($id): JsonResponse
     {
         $supplier = Supplier::find($id);
 
         return response()->json($supplier);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function edit($id)
     {
-        //
+        // Sama seperti create(), fungsi ini mungkin tidak terpakai di alur AJAX Anda.
+        // Kita tambahkan return untuk menghilangkan warning.
+        abort(404); // Atau return response('Not Found', 404);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): JsonResponse
     {
-        $supplier = Supplier::find($id)->update($request->all());
+        $supplier = Supplier::find($id);
+        $supplier->update($request->all());
 
-        return response()->json('Data berhasil disimpan', 200);
+        return response()->json('Data berhasil diperbarui', 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+    public function destroy($id): Response
     {
-        $supplier = Supplier::find($id)->delete();
+        $supplier = Supplier::find($id);
+        $supplier->delete();
 
         return response(null, 204);
     }
