@@ -58,8 +58,7 @@
                                 <a href="{{ route('user.profil') }}" class="btn btn-default btn-flat">Profil</a>
                             </div>
                             <div class="pull-right">
-                                <a href="#" class="btn btn-default btn-flat"
-                                    onclick="$('#logout-form').submit()">Keluar</a>
+                                <a href="#" id="tombol-logout" class="btn btn-default btn-flat">Keluar</a>
                             </div>
                         </li>
                     </ul>
