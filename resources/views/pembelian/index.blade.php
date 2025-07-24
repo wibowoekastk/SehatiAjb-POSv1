@@ -37,15 +37,9 @@
     </div>
 </div>
 
-{{-- ================================================================== --}}
-{{-- LANGKAH DEBUGGING: Mengaktifkan kembali supplier, tetapi detail tetap nonaktif --}}
-{{-- ================================================================== --}}
+{{-- Mengaktifkan kembali kedua modal --}}
 @includeIf('pembelian.supplier')
-{{-- @includeIf('pembelian.detail') --}}
-{{-- ================================================================== --}}
-{{-- AKHIR LANGKAH DEBUGGING --}}
-{{-- ================================================================== --}}
-
+@includeIf('pembelian.detail')
 @endsection
 
 @push('scripts')
@@ -73,26 +67,35 @@
             ]
         });
 
-        // Mengaktifkan kembali inisialisasi tabel supplier
         $('.table-supplier').DataTable();
-        // table1 (tabel detail) tetap dinonaktifkan
-        // table1 = $('.table-detail').DataTable({ ... });
+        // Mengaktifkan kembali tabel untuk modal detail
+        table1 = $('.table-detail').DataTable({
+            processing: true,
+            bSort: false,
+            dom: 'Brt',
+            columns: [
+                {data: 'DT_RowIndex', searchable: false, sortable: false},
+                {data: 'kode_produk'},
+                {data: 'nama_produk'},
+                {data: 'kadar'},
+                {data: 'gram'},
+                {data: 'harga_beli'},
+                {data: 'jumlah'},
+                {data: 'subtotal'},
+            ]
+        })
     });
 
     function addForm() {
-        // Mengaktifkan kembali fungsi untuk menampilkan modal supplier
         $('#modal-supplier').modal('show');
     }
 
+    // Mengaktifkan kembali fungsi untuk menampilkan detail
     function showDetail(url) {
-        // Fungsi detail tetap dinonaktifkan untuk sementara
-        if ($('#modal-detail').length) {
-            $('#modal-detail').modal('show');
-            table1.ajax.url(url);
-            table1.ajax.reload();
-        } else {
-            alert('Fungsi lihat detail dinonaktifkan untuk sementara.');
-        }
+        $('#modal-detail').modal('show');
+
+        table1.ajax.url(url);
+        table1.ajax.reload();
     }
 
     function deleteData(url) {
