@@ -12,7 +12,7 @@ class MemberController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View
      */
     public function index()
     {
@@ -49,7 +49,7 @@ class MemberController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return void
      */
     public function create()
     {
@@ -60,7 +60,7 @@ class MemberController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
@@ -81,7 +81,7 @@ class MemberController extends Controller
      * Display the specified resource.
      *
      * @param int $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
@@ -94,7 +94,7 @@ class MemberController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param int $id
-     * @return \Illuminate\Http\Response
+     * @return void
      */
     public function edit($id)
     {
@@ -106,7 +106,7 @@ class MemberController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param int $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, $id)
     {
@@ -142,7 +142,12 @@ class MemberController extends Controller
 
         $no  = 1;
         $pdf = PDF::loadView('member.cetak', compact('datamember', 'no', 'setting'));
-        $pdf->setPaper(array(0, 0, 566.93, 850.39), 'potrait');
+
+        // !! PERBAIKAN !!
+        // Baris di bawah ini dinonaktifkan agar ukuran PDF mengikuti pengaturan
+        // @page di dalam file CSS (cetak.blade.php).
+        // $pdf->setPaper(array(0, 0, 566.93, 850.39), 'potrait');
+
         return $pdf->stream('member.pdf');
     }
 }

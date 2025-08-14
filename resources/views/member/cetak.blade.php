@@ -2,101 +2,85 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Cetak Kartu Member</title>
-
     <style>
-        .box {
+        /* Mengatur ukuran halaman PDF menjadi seukuran kartu KTP/ATM */
+        @page {
+            size: 85.60mm 53.98mm;
+            margin: 0;
+        }
+        body {
+            font-family: 'Helvetica', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .card-container {
             position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            /* Latar belakang diatur langsung di sini */
+            background-image: url('{{ public_path($setting->path_kartu_member) }}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
-        .card {
-            width: 85.60mm;
-        }
-        .logo {
+        .logo-text {
             position: absolute;
-            top: 3pt;
-            right: 0pt;
-            font-size: 16pt;
-            font-family: Arial, Helvetica, sans-serif;
+            top: 15px;
+            right: 15px;
+            font-size: 14px;
             font-weight: bold;
             color: #fff !important;
-        }
-        .logo p {
             text-align: right;
-            margin-right: 16pt;
-        }
-        .logo img {
-            position: absolute;
-            margin-top: -5pt;
-            width: 40px;
-            height: 40px;
-            right: 16pt;
         }
         .nama {
             position: absolute;
-            top: 100pt;
-            right: 16pt;
-            font-size: 12pt;
-            font-family: Arial, Helvetica, sans-serif;
+            bottom: 50px;
+            left: 15px;
+            font-size: 14px;
             font-weight: bold;
-            color: #fff !important;
+            color: #fff !important; /* Warna diubah kembali ke putih */
+            text-align: left;
         }
         .telepon {
             position: absolute;
-            margin-top: 120pt;
-            right: 16pt;
-            color: #fff;
+            bottom: 30px;
+            left: 15px;
+            font-size: 11px;
+            color: #fff !important; /* Warna diubah kembali ke putih */
         }
         .barcode {
             position: absolute;
-            top: 105pt;
-            left: .860rem;
-            border: 1px solid #fff;
-            padding: .5px;
+            bottom: 15px;
+            right: 15px;
+            padding: 3px;
             background: #fff;
-        }
-        .text-left {
-            text-align: left;
-        }
-        .text-right {
-            text-align: right;
-        }
-        .text-center {
-            text-align: center;
+            border-radius: 3px;
         }
     </style>
 </head>
 <body>
-    <section style="border: 1px solid #fff">
-        <table width="100%">
-            @foreach ($datamember as $key => $data)
-                <tr>
-                    @foreach ($data as $item)
-                        <td class="text-center">
-                            <div class="box">
-                                <img src="{{ public_path($setting->path_kartu_member) }}" alt="card" width="50%">
-                                <div class="logo">
-                                    <p>{{ $setting->nama_perusahaan }}</p>
-                                    <img src="{{ public_path($setting->path_logo) }}" alt="logo">
-                                </div>
-                                <div class="nama">{{ $item->nama }}</div>
-                                <div class="telepon">{{ $item->telepon }}</div>
-                                <div class="barcode text-left">
-                                    <img src="data:image/png;base64, {{ DNS2D::getBarcodePNG("$item->kode_member", 'QRCODE') }}" alt="qrcode"
-                                        height="45"
-                                        widht="45">
-                                </div>
-                            </div>
-                        </td>
-                        
-                        @if (count($datamember) == 1)
-                        <td class="text-center" style="width: 50%;"></td>
-                        @endif
-                    @endforeach
-                </tr>
-            @endforeach
-        </table>
-    </section>
+    {{-- Ambil data member pertama dari array --}}
+    @php
+        $item = $datamember[0][0];
+    @endphp
+
+    {{-- Strukturnya disederhanakan, tidak perlu lapisan terpisah --}}
+    <div class="card-container">
+        <div class="logo-text">
+            <p>{{ $setting->nama_perusahaan }}</p>
+        </div>
+
+        <div class="nama">{{ $item->nama }}</div>
+        <div class="telepon">{{ $item->telepon }}</div>
+
+        <div class="barcode">
+            <img src="data:image/png;base64, {{ DNS2D::getBarcodePNG((string) $item->kode_member, 'QRCODE') }}" alt="qrcode"
+                height="50"
+                width="50">
+        </div>
+    </div>
 </body>
 </html>
