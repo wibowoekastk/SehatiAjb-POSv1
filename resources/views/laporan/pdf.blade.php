@@ -22,7 +22,7 @@
             padding-bottom: 15px;
         }
         .header img {
-            width: 100px;
+            width: 100px; /* Anda bisa sesuaikan ukuran logo di sini */
             margin-bottom: 10px;
         }
         .header h2 {
@@ -63,12 +63,43 @@
         .data-table tfoot .label-total {
             text-align: right;
         }
+        /* CSS untuk bagian Tanda Tangan */
+        .signature-section {
+            margin-top: 50px;
+            width: 100%;
+        }
+        .signature-block {
+            float: right;
+            width: 250px;
+            text-align: center;
+        }
+        .signature-block p {
+            margin: 0;
+            padding: 0;
+        }
+        .signature-space {
+            height: 60px; /* Ruang kosong untuk tanda tangan */
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <img src="{{ public_path('img/logo-20250701080805.png') }}" alt="Logo Toko">
+            @php
+                $logoPath = public_path('img/logo-20250701080805.png');
+                $logoBase64 = '';
+                if (file_exists($logoPath)) {
+                    $fileType = pathinfo($logoPath, PATHINFO_EXTENSION);
+                    $fileData = file_get_contents($logoPath);
+                    $logoBase64 = 'data:image/' . $fileType . ';base64,' . base64_encode($fileData);
+                }
+            @endphp
+
+            @if ($logoBase64)
+                <img src="{{ $logoBase64 }}" alt="Logo Toko">
+            @endif
+
             <h2>Laporan Pendapatan</h2>
             <h3>Periode: {{ tanggal_indonesia($awal, false) }} s/d {{ tanggal_indonesia($akhir, false) }}</h3>
         </div>
@@ -102,7 +133,6 @@
                     <td class="text-right">{{ format_uang($row['pendapatan']) }}</td>
                 </tr>
                 @php
-                    // Menjumlahkan data mentah untuk total
                     $total_penjualan += $row['penjualan'];
                     $total_pembelian += $row['pembelian'];
                     $total_pengeluaran += $row['pengeluaran'];
@@ -120,6 +150,25 @@
                 </tr>
             </tfoot>
         </table>
+
+        {{-- ====================================================== --}}
+        {{--          BAGIAN BARU UNTUK TANDA TANGAN                --}}
+        {{-- ====================================================== --}}
+        <div class="signature-section">
+            <div class="signature-block">
+                <p>Ajibarang, {{ tanggal_indonesia(date('Y-m-d'), false) }}</p>
+                <p>Yang membuat laporan,</p>
+                <div class="signature-space">
+                    {{-- Area ini sengaja dikosongkan untuk tanda tangan basah --}}
+                </div>
+                <p><strong>(________________________)</strong></p>
+                <p><em>Nama Jelas & Jabatan</em></p>
+            </div>
+        </div>
+        {{-- ====================================================== --}}
+        {{--               AKHIR BAGIAN TANDA TANGAN                --}}
+        {{-- ====================================================== --}}
+
     </div>
 </body>
 </html>
