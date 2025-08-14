@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Pembelian;
 use App\Models\Pengeluaran;
 use App\Models\Penjualan;
+use App\Models\Setting; // 1. Tambahkan ini untuk memanggil Model Setting
 use Illuminate\Http\Request;
 use PDF;
+
 class LaporanController extends Controller
 {
     public function index(Request $request)
@@ -21,6 +23,7 @@ class LaporanController extends Controller
 
         return view('laporan.index', compact('tanggalAwal', 'tanggalAkhir'));
     }
+
     public function getData($awal, $akhir)
     {
         $data = array();
@@ -46,6 +49,7 @@ class LaporanController extends Controller
 
         return $data;
     }
+
     public function data($awal, $akhir)
     {
         $rawData = $this->getData($awal, $akhir);
@@ -84,7 +88,10 @@ class LaporanController extends Controller
     public function exportPDF($awal, $akhir)
     {
         $data = $this->getData($awal, $akhir);
-        $pdf  = PDF::loadView('laporan.pdf', compact('awal', 'akhir', 'data'));
+        $setting = Setting::first(); // 2. Ambil data setting dari database
+
+        // 3. Tambahkan 'setting' ke dalam compact agar dikirim ke view
+        $pdf  = PDF::loadView('laporan.pdf', compact('awal', 'akhir', 'data', 'setting'));
         $pdf->setPaper('a4', 'portrait');
 
         return $pdf->stream('Laporan-pendapatan-'. date('Y-m-d-his') .'.pdf');

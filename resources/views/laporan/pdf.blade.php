@@ -16,23 +16,33 @@
             padding: 10px;
         }
         .header {
-            text-align: center;
-            margin-bottom: 25px;
+            width: 100%;
             border-bottom: 2px solid #333;
             padding-bottom: 15px;
+            margin-bottom: 25px;
         }
-        .header img {
-            width: 100px; /* Anda bisa sesuaikan ukuran logo di sini */
-            margin-bottom: 10px;
+        .header .logo {
+            width: 80px;
+            height: auto;
+            float: left;
         }
-        .header h2 {
+        .header .report-info {
+            float: left;
+            margin-left: 20px;
+        }
+        .header .report-info h2 {
             margin: 0;
             font-size: 24px;
         }
-        .header h3 {
-            margin: 5px 0;
+        .header .report-info h3 {
+            margin: 5px 0 0 0;
             font-size: 16px;
             font-weight: normal;
+        }
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
         }
         .data-table {
             width: 100%;
@@ -47,9 +57,6 @@
             font-weight: bold;
             text-align: center;
         }
-        .data-table tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
         .data-table td.text-center {
             text-align: center;
         }
@@ -60,10 +67,6 @@
             font-weight: bold;
             background-color: #f2f2f2;
         }
-        .data-table tfoot .label-total {
-            text-align: right;
-        }
-        /* CSS untuk bagian Tanda Tangan */
         .signature-section {
             margin-top: 50px;
             width: 100%;
@@ -78,30 +81,22 @@
             padding: 0;
         }
         .signature-space {
-            height: 60px; /* Ruang kosong untuk tanda tangan */
+            height: 60px;
             margin: 10px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            @php
-                $logoPath = public_path('img/logo-20250701080805.png');
-                $logoBase64 = '';
-                if (file_exists($logoPath)) {
-                    $fileType = pathinfo($logoPath, PATHINFO_EXTENSION);
-                    $fileData = file_get_contents($logoPath);
-                    $logoBase64 = 'data:image/' . $fileType . ';base64,' . base64_encode($fileData);
-                }
-            @endphp
-
-            @if ($logoBase64)
-                <img src="{{ $logoBase64 }}" alt="Logo Toko">
+        <div class="clearfix header">
+            {{-- Kode ini sekarang menggunakan variabel $setting dari Controller --}}
+            @if (isset($setting) && $setting->path_logo && file_exists(public_path($setting->path_logo)))
+                <img src="{{ public_path($setting->path_logo) }}" alt="Logo Toko" class="logo">
             @endif
-
-            <h2>Laporan Pendapatan</h2>
-            <h3>Periode: {{ tanggal_indonesia($awal, false) }} s/d {{ tanggal_indonesia($akhir, false) }}</h3>
+            <div class="report-info">
+                <h2>Laporan Pendapatan</h2>
+                <h3>Periode: {{ tanggal_indonesia($awal, false) }} s/d {{ tanggal_indonesia($akhir, false) }}</h3>
+            </div>
         </div>
 
         <table class="data-table">
@@ -151,23 +146,15 @@
             </tfoot>
         </table>
 
-        {{-- ====================================================== --}}
-        {{--          BAGIAN BARU UNTUK TANDA TANGAN                --}}
-        {{-- ====================================================== --}}
         <div class="signature-section">
             <div class="signature-block">
                 <p>Ajibarang, {{ tanggal_indonesia(date('Y-m-d'), false) }}</p>
                 <p>Yang membuat laporan,</p>
-                <div class="signature-space">
-                    {{-- Area ini sengaja dikosongkan untuk tanda tangan basah --}}
-                </div>
+                <div class="signature-space"></div>
                 <p><strong>(________________________)</strong></p>
                 <p><em>Nama Jelas & Jabatan</em></p>
             </div>
         </div>
-        {{-- ====================================================== --}}
-        {{--               AKHIR BAGIAN TANDA TANGAN                --}}
-        {{-- ====================================================== --}}
 
     </div>
 </body>
