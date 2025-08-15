@@ -5,7 +5,6 @@
 @endsection
 
 @push('css')
-{{-- SweetAlert2 CSS sudah ada, bagus! --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
 <style>
@@ -14,13 +13,16 @@
         text-align: center;
         height: 100px;
     }
+
     .tampil-terbilang {
         padding: 10px;
         background: #f0f0f0;
     }
+
     .table-penjualan tbody tr:last-child {
         display: none;
     }
+
     @media(max-width: 768px) {
         .tampil-bayar {
             font-size: 3em;
@@ -42,6 +44,7 @@
         <div class="box">
             <div class="box-body">
 
+                {{-- Form Produk --}}
                 <form class="form-produk">
                     @csrf
                     <div class="form-group row">
@@ -59,6 +62,7 @@
                     </div>
                 </form>
 
+                {{-- Table Penjualan --}}
                 <table class="table table-stiped table-bordered table-penjualan">
                     <thead>
                         <th width="5%">No</th>
@@ -74,12 +78,14 @@
                     </thead>
                 </table>
 
+                {{-- Tampilan Kembali/Kurang --}}
                 <div class="row">
                     <div class="col-lg-8">
                         <div class="tampil-bayar bg-primary"></div>
                         <div class="tampil-terbilang"></div>
                     </div>
                     <div class="col-lg-4">
+                        {{-- Form Penjualan --}}
                         <form action="{{ route('transaksi.simpan') }}" class="form-penjualan" method="post">
                             @csrf
                             <input type="hidden" name="id_penjualan" value="{{ $id_penjualan }}">
@@ -123,10 +129,6 @@
                                 <label for="diterima" class="col-lg-2 control-label">Diterima</label>
                                 <div class="col-lg-8">
                                     <input type="number" id="diterima" class="form-control" name="diterima" value="{{ $penjualan->diterima ?? 0 }}">
-                                    {{-- Blok untuk menampilkan error dari server --}}
-                                    @error('diterima')
-                                        <span class="help-block text-red">{{ $message }}</span>
-                                    @enderror
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -152,14 +154,12 @@
 @endsection
 
 @push('scripts')
-{{-- SweetAlert2 JS sudah ada, bagus! --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     let table, table2;
 
     $(function () {
-        // ... (Semua kode JavaScript asli Anda dari baris 179 sampai 243 tetap sama) ...
         $('body').addClass('sidebar-collapse');
 
         table = $('.table-penjualan').DataTable({
@@ -192,6 +192,7 @@
                 $('#diterima').trigger('input');
             }, 300);
         });
+
         table2 = $('.table-produk').DataTable();
 
         $(document).on('input', '.quantity', function () {
@@ -221,7 +222,6 @@
                 })
                 .fail(errors => {
                     Swal.fire('Gagal', 'Tidak dapat menyimpan data', 'error');
-                    return;
                 });
         });
 
@@ -242,49 +242,46 @@
         });
 
         // ==================================================================
-        // PENAMBAHAN: Logika Pengecekan Sebelum Simpan Transaksi
+        // PENAMBAHAN FUNGSI NOTIFIKASI (KODE ASLI ANDA DIUBAH DI SINI)
         // ==================================================================
         $('.btn-simpan').on('click', function (e) {
-            // 1. Dapatkan nilai yang harus dibayar dan yang sudah diterima
+            // Mencegah form dikirim secara otomatis
+            e.preventDefault();
+
+            // 1. Ambil nilai yang harus dibayar dan yang sudah diterima
             const totalHarusBayar = parseInt($('#bayar').val()) || 0;
             const uangDiterima = parseInt($('#diterima').val()) || 0;
 
-            // 2. Cek jika uang yang diterima kurang
+            // 2. Cek jika uang yang diterima kurang dari total bayar
             if (uangDiterima < totalHarusBayar) {
-                // Mencegah form untuk dikirim
-                e.preventDefault();
-
-                // Tampilkan notifikasi error menggunakan SweetAlert
+                // Jika kurang, tampilkan notifikasi error
                 Swal.fire({
                     icon: 'error',
-                    title: 'Pembayaran Gagal',
-                    text: 'Jumlah uang yang diterima tidak cukup!',
+                    title: 'Transaksi Gagal',
+                    text: 'Jumlah pembayaran tidak cukup!',
                 });
-
-                return false; // Hentikan eksekusi lebih lanjut
+            } else {
+                // Jika cukup, lanjutkan proses simpan seperti biasa
+                $('.form-penjualan').submit();
             }
-
-            // 3. Jika pembayaran cukup, lanjutkan submit form
-            $('.form-penjualan').submit();
         });
+        // ==================================================================
+        // AKHIR PENAMBAHAN FUNGSI
+        // ==================================================================
     });
 
-    // ... (Semua fungsi JavaScript asli Anda dari baris 245 sampai akhir tetap sama) ...
     function tampilProduk() {
         $('#modal-produk').modal('show');
     }
-
     function hideProduk() {
         $('#modal-produk').modal('hide');
     }
-
     function pilihProduk(id, kode) {
         $('#id_produk').val(id);
         $('#kode_produk').val(kode);
         hideProduk();
         tambahProduk();
     }
-
     function tambahProduk() {
         $.post('{{ route('transaksi.store') }}', $('.form-produk').serialize())
             .done(response => {
@@ -297,14 +294,11 @@
                     title: 'Gagal',
                     text: errors.responseJSON,
                 });
-                return;
             });
     }
-
     function tampilMember() {
         $('#modal-member').modal('show');
     }
-
     function pilihMember(id, kode) {
         $('#id_member').val(id);
         $('#kode_member').val(kode);
@@ -313,11 +307,9 @@
         $('#diterima').val(0).focus().select();
         hideMember();
     }
-
     function hideMember() {
         $('#modal-member').modal('hide');
     }
-
     function deleteData(url) {
         Swal.fire({
             title: 'Yakin ingin menghapus data?',
@@ -339,34 +331,44 @@
                 })
                 .fail((errors) => {
                     Swal.fire('Gagal', 'Tidak dapat menghapus data', 'error');
-                    return;
                 });
             }
         });
     }
 
-    function loadForm(diskon = 0, diterima = 0) {
-        $('#total').val($('.total').text());
-        $('#total_item').val($('.total_item').text());
+function loadForm(diskon = 0, diterima = 0) {
+    $('#total').val($('.total').text());
+    $('#total_item').val($('.total_item').text());
 
-        $.get("{{ url('/transaksi/loadform') }}/" + diskon + "/" + $('.total').text() + "/" + diterima)
-            .done(response => {
-                $('#totalrp').val('Rp. '+ response.totalrp);
-                $('#bayarrp').val('Rp. '+ response.bayarrp);
-                $('#bayar').val(response.bayar);
-                $('.tampil-bayar').text('Bayar: Rp. '+ response.bayarrp);
+    $.get("{{ url('/transaksi/loadform') }}/" + diskon + "/" + $('.total').text() + "/" + diterima)
+        .done(response => {
+            $('#totalrp').val('Rp. ' + response.totalrp);
+            $('#bayarrp').val('Rp. ' + response.bayarrp);
+            $('#bayar').val(response.bayar);
+            $('#kembali').val('Rp. ' + response.kembalirp);
+
+            let bayarAngka = parseInt(response.bayar);
+            let kembaliAngka = parseInt(response.kembali);
+            let diterimaAngka = parseInt(diterima);
+
+            if (diterimaAngka === 0) {
+                // Belum ada pembayaran → tampilkan total bayar
+                $('.tampil-bayar').text('Bayar: Rp. ' + response.bayarrp);
                 $('.tampil-terbilang').text(response.terbilang);
-
-                $('#kembali').val('Rp.'+ response.kembalirp);
-                if ($('#diterima').val() != 0) {
-                    $('.tampil-bayar').text('Kembali: Rp. '+ response.kembalirp);
-                    $('.tampil-terbilang').text(response.kembali_terbilang);
-                }
-            })
-            .fail(errors => {
-                Swal.fire('Gagal', 'Tidak dapat menampilkan data', 'error');
-                return;
-            })
-    }
+            } else if (diterimaAngka < bayarAngka) {
+                // Pembayaran kurang
+                let kurangPositif = (bayarAngka - diterimaAngka).toLocaleString('id-ID');
+                $('.tampil-bayar').text('Kurang: Rp. ' + kurangPositif);
+                $('.tampil-terbilang').text('Kurang ' + response.kembali_terbilang.replace('minus', '').trim());
+            } else {
+                // Pembayaran cukup atau lebih
+                $('.tampil-bayar').text('Kembali: Rp. ' + response.kembalirp);
+                $('.tampil-terbilang').text('Kembali ' + response.kembali_terbilang);
+            }
+        })
+        .fail(errors => {
+            Swal.fire('Gagal', 'Tidak dapat menampilkan data', 'error');
+        });
+}
 </script>
 @endpush
