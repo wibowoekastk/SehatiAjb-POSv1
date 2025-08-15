@@ -107,7 +107,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="header clearfix">
+        <div class="clearfix header">
             <img src="{{ public_path($setting->path_logo) }}" alt="Logo" class="logo">
             <div class="store-info">
                 <h1>{{ $setting->nama_perusahaan }}</h1>
@@ -145,8 +145,11 @@
                     <td class="text-center">{{ $key+1 }}</td>
                     <td>{{ $item->produk->nama_produk }}</td>
                     <td class="text-center">{{ $item->kadar }}</td>
-                    {{-- INI KODE YANG BENAR --}}
-                    <td class="text-center">{{ number_format($item->gram, 3, ',', '.') }}</td>
+                    {{-- ================================================================== --}}
+                    {{-- PERBAIKAN: Mengganti format_uang dengan (float) untuk gram --}}
+                    {{-- ================================================================== --}}
+                    <td class="text-center">{{ (float)$item->gram }}</td>
+                    {{-- ================================================================== --}}
                     <td class="text-right">{{ format_uang($item->harga_jual) }}</td>
                     <td class="text-center">{{ format_uang($item->jumlah) }}</td>
                     <td class="text-right">{{ format_uang($item->subtotal) }}</td>
@@ -155,9 +158,6 @@
             </tbody>
         </table>
 
-        {{-- ================================================================== --}}
-        {{-- PERBAIKAN: Menggunakan tabel untuk layout total agar tidak tumpang tindih --}}
-        {{-- ================================================================== --}}
         <table class="totals-table">
             <tr>
                 <td class="label">Total Harga :</td>
@@ -181,9 +181,6 @@
             </tr>
         </table>
 
-        {{-- ================================================================== --}}
-        {{-- PERBAIKAN: Menggunakan tabel untuk layout footer agar tidak tumpang tindih --}}
-        {{-- ================================================================== --}}
         <table class="footer-table">
             <tr>
                 <td class="notes">
