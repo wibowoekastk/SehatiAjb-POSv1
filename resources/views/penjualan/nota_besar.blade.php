@@ -145,7 +145,8 @@
                     <td class="text-center">{{ $key+1 }}</td>
                     <td>{{ $item->produk->nama_produk }}</td>
                     <td class="text-center">{{ $item->kadar }}</td>
-                    <td class="text-center">{{ format_uang($item->gram, 3) }}</td>
+                    {{-- INI KODE YANG BENAR --}}
+                    <td class="text-center">{{ number_format($item->gram, 3, ',', '.') }}</td>
                     <td class="text-right">{{ format_uang($item->harga_jual) }}</td>
                     <td class="text-center">{{ format_uang($item->jumlah) }}</td>
                     <td class="text-right">{{ format_uang($item->subtotal) }}</td>

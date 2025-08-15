@@ -18,41 +18,28 @@ class PenjualanDetailController extends Controller
         $diskon = Setting::first()->diskon ?? 0;
 
         $penjualan = null;
-        // Coba ambil ID dari session
         if ($id_penjualan = session('id_penjualan')) {
-            // Cari transaksi berdasarkan ID tersebut
             $penjualan = Penjualan::find($id_penjualan);
         }
 
-        // Jika transaksi di session tidak valid (sudah dihapus), atau tidak ada session sama sekali
-        if (! $penjualan) {
-            // Lupakan session yang salah jika ada
-            session()->forget('id_penjualan');
-            
-            // Hanya admin (level 1) yang bisa membuat transaksi baru secara otomatis
-            if (auth()->user()->level == 1) {
-                // Buat transaksi baru
-                $penjualan = new Penjualan();
-                $penjualan->id_member = null;
-                $penjualan->total_item = 0;
-                $penjualan->total_harga = 0;
-                $penjualan->diskon = 0;
-                $penjualan->bayar = 0;
-                $penjualan->diterima = 0;
-                $penjualan->id_user = auth()->id();
-                $penjualan->save();
+        if (! $penjualan && auth()->user()->level == 1) {
+            $penjualan = new Penjualan();
+            $penjualan->id_member = null;
+            $penjualan->total_item = 0;
+            $penjualan->total_harga = 0;
+            $penjualan->diskon = 0;
+            $penjualan->bayar = 0;
+            $penjualan->diterima = 0;
+            $penjualan->id_user = auth()->id();
+            $penjualan->save();
 
-                // Simpan ID baru ke session
-                session(['id_penjualan' => $penjualan->id_penjualan]);
-            } else {
-                // Jika bukan admin, arahkan ke halaman utama untuk menghindari error
-                return redirect()->route('home');
-            }
+            session(['id_penjualan' => $penjualan->id_penjualan]);
+        }
+        elseif (! $penjualan && auth()->user()->level != 1) {
+            return redirect()->route('home');
         }
 
-        // Pada titik ini, kita pasti memiliki objek $penjualan yang valid
         $memberSelected = $penjualan->member ?? new Member();
-        // Pastikan variabel id_penjualan selalu ada untuk dikirim ke view
         $id_penjualan = $penjualan->id_penjualan;
 
         return view('penjualan_detail.index', compact('produk', 'member', 'diskon', 'id_penjualan', 'penjualan', 'memberSelected'));
@@ -73,7 +60,11 @@ class PenjualanDetailController extends Controller
             $row['kode_produk'] = '<span class="label label-success">'. $item->produk['kode_produk'] .'</span>';
             $row['nama_produk'] = $item->produk['nama_produk'];
             $row['kadar']       = $item->kadar ?? '-';
-            $row['gram']        = ($item->gram ? $item->gram . ' gr' : '-');
+            // ==================================================================
+            // PERBAIKAN: Mengubah format tampilan gram
+            // ==================================================================
+            $row['gram']        = ($item->gram ? (float)$item->gram . ' gr' : '-');
+            // ==================================================================
             $row['harga_jual']  = 'Rp. '. format_uang($item->harga_jual);
             $row['jumlah']      = '<input type="number" class="form-control input-sm quantity" data-id="'. $item->id_penjualan_detail .'" value="'. $item->jumlah .'">';
             $row['diskon']      = $item->diskon . '%';

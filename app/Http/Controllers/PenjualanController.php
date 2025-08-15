@@ -8,6 +8,8 @@ use App\Models\Produk;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use PDF;
+// PERUBAHAN 1: Pastikan Validator di-import
+use Illuminate\Support\Facades\Validator;
 
 class PenjualanController extends Controller
 {
@@ -73,8 +75,40 @@ class PenjualanController extends Controller
         return redirect()->route('transaksi.index');
     }
 
+    // PERUBAHAN 2: Menambahkan blok validasi di dalam method store()
     public function store(Request $request)
     {
+        // ==================================================================
+        // VALIDASI SERVER DIMULAI DI SINI
+        // ==================================================================
+        $total_bayar = $request->bayar;
+
+        $rules = [
+            'diterima'  => [
+                'required',
+                'numeric',
+                'min:' . $total_bayar
+            ],
+        ];
+
+        $messages = [
+            'diterima.required' => 'Jumlah uang yang diterima wajib diisi.',
+            'diterima.numeric'  => 'Input Diterima harus berupa angka.',
+            'diterima.min'      => 'Jumlah pembayaran kurang dari total tagihan.',
+        ];
+
+        // PERUBAHAN 4: Memperbaiki variabel 'messages' menjadi '$messages'
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                        ->withErrors($validator)
+                        ->withInput();
+        }
+        // ==================================================================
+        // VALIDASI BERHASIL, LANJUTKAN PROSES PENYIMPANAN (KODE ASLI ANDA)
+        // ==================================================================
+
         $penjualan = Penjualan::findOrFail($request->id_penjualan);
         $penjualan->id_member = $request->id_member;
         $penjualan->total_item = $request->total_item;
@@ -110,18 +144,12 @@ class PenjualanController extends Controller
             ->addColumn('nama_produk', function ($detail) {
                 return $detail->produk->nama_produk ?? '';
             })
-            // ==================================================================
-            // PENAMBAHAN KOLOM KADAR DAN GRAM DI DETAIL TRANSAKSI
-            // ==================================================================
             ->addColumn('kadar', function ($detail) {
                 return $detail->kadar ?? '-';
             })
             ->addColumn('gram', function ($detail) {
-                return ($detail->gram ? $detail->gram . ' gr' : '-');
+                return ($detail->gram ? (float)$detail->gram . ' gr' : '-');
             })
-            // ==================================================================
-            // AKHIR PENAMBAHAN
-            // ==================================================================
             ->addColumn('harga_jual', function ($detail) {
                 return 'Rp. '. format_uang($detail->harga_jual);
             })
@@ -187,7 +215,8 @@ class PenjualanController extends Controller
             ->get();
 
         $pdf = PDF::loadView('penjualan.nota_besar', compact('setting', 'penjualan', 'detail'));
-        $pdf->setPaper(0,0,609,440, 'potrait');
+        // PERUBAHAN 3: Memperbaiki cara pemanggilan setPaper
+        $pdf->setPaper([0, 0, 609, 440], 'portrait');
         return $pdf->stream('Transaksi-'. date('Y-m-d-his') .'.pdf');
     }
 }

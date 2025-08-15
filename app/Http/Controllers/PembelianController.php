@@ -12,10 +12,6 @@ class PembelianController extends Controller
 {
     public function index()
     {
-        // ==================================================================
-        // LANGKAH DEBUGGING SELESAI: Menghapus dd() untuk melanjutkan
-        // ==================================================================
-        
         $supplier = Supplier::orderBy('nama')->get();
 
         return view('pembelian.index', compact('supplier'));
@@ -109,9 +105,15 @@ class PembelianController extends Controller
             ->addColumn('kadar', function ($detail) {
                 return $detail->kadar ?? '-';
             })
+            // ==================================================================
+            // PERBAIKAN: Mengubah format tampilan gram
+            // ==================================================================
             ->addColumn('gram', function ($detail) {
-                return ($detail->gram ? $detail->gram . ' gr' : '-');
+                return ($detail->gram ? (float)$detail->gram . ' gr' : '-');
             })
+            // ==================================================================
+            // AKHIR PERBAIKAN
+            // ==================================================================
             ->addColumn('harga_beli', function ($detail) {
                 return 'Rp. '. format_uang($detail->harga_beli);
             })

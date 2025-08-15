@@ -5,11 +5,8 @@
 @endsection
 
 @push('css')
-{{-- ================================================================== --}}
-{{-- PENAMBAHAN 1: Menambahkan CSS untuk SweetAlert2 --}}
-{{-- ================================================================== --}}
+{{-- SweetAlert2 CSS sudah ada, bagus! --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-{{-- ================================================================== --}}
 
 <style>
     .tampil-bayar {
@@ -17,16 +14,13 @@
         text-align: center;
         height: 100px;
     }
-
     .tampil-terbilang {
         padding: 10px;
         background: #f0f0f0;
     }
-
     .table-penjualan tbody tr:last-child {
         display: none;
     }
-
     @media(max-width: 768px) {
         .tampil-bayar {
             font-size: 3em;
@@ -129,6 +123,10 @@
                                 <label for="diterima" class="col-lg-2 control-label">Diterima</label>
                                 <div class="col-lg-8">
                                     <input type="number" id="diterima" class="form-control" name="diterima" value="{{ $penjualan->diterima ?? 0 }}">
+                                    {{-- Blok untuk menampilkan error dari server --}}
+                                    @error('diterima')
+                                        <span class="help-block text-red">{{ $message }}</span>
+                                    @enderror
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -154,16 +152,14 @@
 @endsection
 
 @push('scripts')
-{{-- ================================================================== --}}
-{{-- PENAMBAHAN 2: Menambahkan JavaScript untuk SweetAlert2 --}}
-{{-- ================================================================== --}}
+{{-- SweetAlert2 JS sudah ada, bagus! --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-{{-- ================================================================== --}}
 
 <script>
     let table, table2;
 
     $(function () {
+        // ... (Semua kode JavaScript asli Anda dari baris 179 sampai 243 tetap sama) ...
         $('body').addClass('sidebar-collapse');
 
         table = $('.table-penjualan').DataTable({
@@ -233,7 +229,6 @@
             if ($(this).val() == "") {
                 $(this).val(0).select();
             }
-
             loadForm($(this).val());
         });
 
@@ -241,17 +236,40 @@
             if ($(this).val() == "") {
                 $(this).val(0).select();
             }
-
             loadForm($('#diskon').val(), $(this).val());
         }).focus(function () {
             $(this).select();
         });
 
-        $('.btn-simpan').on('click', function () {
+        // ==================================================================
+        // PENAMBAHAN: Logika Pengecekan Sebelum Simpan Transaksi
+        // ==================================================================
+        $('.btn-simpan').on('click', function (e) {
+            // 1. Dapatkan nilai yang harus dibayar dan yang sudah diterima
+            const totalHarusBayar = parseInt($('#bayar').val()) || 0;
+            const uangDiterima = parseInt($('#diterima').val()) || 0;
+
+            // 2. Cek jika uang yang diterima kurang
+            if (uangDiterima < totalHarusBayar) {
+                // Mencegah form untuk dikirim
+                e.preventDefault();
+
+                // Tampilkan notifikasi error menggunakan SweetAlert
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Pembayaran Gagal',
+                    text: 'Jumlah uang yang diterima tidak cukup!',
+                });
+
+                return false; // Hentikan eksekusi lebih lanjut
+            }
+
+            // 3. Jika pembayaran cukup, lanjutkan submit form
             $('.form-penjualan').submit();
         });
     });
 
+    // ... (Semua fungsi JavaScript asli Anda dari baris 245 sampai akhir tetap sama) ...
     function tampilProduk() {
         $('#modal-produk').modal('show');
     }
@@ -273,9 +291,6 @@
                 $('#kode_produk').focus();
                 table.ajax.reload(() => loadForm($('#diskon').val()));
             })
-            // ==================================================================
-            // PERUBAHAN 3: Mengganti alert dengan SweetAlert2
-            // ==================================================================
             .fail(errors => {
                 Swal.fire({
                     icon: 'error',
@@ -304,9 +319,6 @@
     }
 
     function deleteData(url) {
-        // ==================================================================
-        // PERUBAHAN 4: Mengganti confirm dengan SweetAlert2
-        // ==================================================================
         Swal.fire({
             title: 'Yakin ingin menghapus data?',
             text: "Data yang sudah dihapus tidak dapat dikembalikan!",

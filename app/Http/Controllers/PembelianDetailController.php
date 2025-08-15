@@ -13,7 +13,7 @@ class PembelianDetailController extends Controller
     public function index()
     {
         $id_pembelian = session('id_pembelian');
-        
+
         if (! $id_pembelian) {
             return redirect()->route('pembelian.index');
         }
@@ -35,65 +35,56 @@ class PembelianDetailController extends Controller
 
     public function data($id)
     {
-        // ==================================================================
-        // PERBAIKAN: Menambahkan blok try-catch untuk menangkap error fatal
-        // ==================================================================
-        try {
-            $detail = PembelianDetail::with('produk')
-                ->where('id_pembelian', $id)
-                ->get();
-            $data = array();
-            $total = 0;
-            $total_item = 0;
+        $detail = PembelianDetail::with('produk')
+            ->where('id_pembelian', $id)
+            ->get();
+        $data = array();
+        $total = 0;
+        $total_item = 0;
 
-            foreach ($detail as $item) {
-                if (! $item->produk) {
-                    continue; 
-                }
-
-                $row = array();
-                $row['kode_produk'] = '<span class="label label-success">'. $item->produk->kode_produk .'</span>';
-                $row['nama_produk'] = $item->produk->nama_produk;
-                $row['kadar']       = $item->kadar ?? '-';
-                $row['gram']        = ($item->gram ? $item->gram . ' gr' : '-');
-                $row['harga_beli']  = 'Rp. '. format_uang($item->harga_beli);
-                $row['jumlah']      = '<input type="number" class="form-control input-sm quantity" data-id="'. $item->id_pembelian_detail .'" value="'. $item->jumlah .'">';
-                $row['subtotal']    = 'Rp. '. format_uang($item->subtotal);
-                $row['aksi']        = '<div class="btn-group">
-                                        <button onclick="deleteData(`'. route('pembelian_detail.destroy', $item->id_pembelian_detail) .'`)" class="btn btn-xs btn-danger btn-flat"><i class="fa fa-trash"></i></button>
-                                    </div>';
-                $data[] = $row;
-
-                $total += $item->harga_beli * $item->jumlah;
-                $total_item += $item->jumlah;
+        foreach ($detail as $item) {
+            if (! $item->produk) {
+                continue;
             }
-            $data[] = [
-                'kode_produk' => '
-                    <div class="total hide">'. $total .'</div>
-                    <div class="total_item hide">'. $total_item .'</div>',
-                'nama_produk' => '',
-                'kadar'       => '',
-                'gram'        => '',
-                'harga_beli'  => '',
-                'jumlah'      => '',
-                'subtotal'    => '',
-                'aksi'        => '',
-            ];
 
-            return datatables()
-                ->of($data)
-                ->addIndexColumn()
-                ->rawColumns(['aksi', 'kode_produk', 'jumlah'])
-                ->make(true);
-        } catch (\Throwable $e) {
-            // Jika terjadi error, kirim pesan error yang detail sebagai response JSON
-            return response()->json([
-                'error' => 'Terjadi error di server.',
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ], 500);
+            $row = array();
+            $row['kode_produk'] = '<span class="label label-success">'. $item->produk->kode_produk .'</span>';
+            $row['nama_produk'] = $item->produk->nama_produk;
+            $row['kadar']       = $item->kadar ?? '-';
+            // ==================================================================
+            // PERBAIKAN: Mengubah format tampilan gram
+            // ==================================================================
+            $row['gram']        = ($item->gram ? (float)$item->gram . ' gr' : '-');
+            // ==================================================================
+            $row['harga_beli']  = 'Rp. '. format_uang($item->harga_beli);
+            $row['jumlah']      = '<input type="number" class="form-control input-sm quantity" data-id="'. $item->id_pembelian_detail .'" value="'. $item->jumlah .'">';
+            $row['subtotal']    = 'Rp. '. format_uang($item->subtotal);
+            $row['aksi']        = '<div class="btn-group">
+                                    <button onclick="deleteData(`'. route('pembelian_detail.destroy', $item->id_pembelian_detail) .'`)" class="btn btn-xs btn-danger btn-flat"><i class="fa fa-trash"></i></button>
+                                </div>';
+            $data[] = $row;
+
+            $total += $item->harga_beli * $item->jumlah;
+            $total_item += $item->jumlah;
         }
+        $data[] = [
+            'kode_produk' => '
+                <div class="total hide">'. $total .'</div>
+                <div class="total_item hide">'. $total_item .'</div>',
+            'nama_produk' => '',
+            'kadar'       => '',
+            'gram'        => '',
+            'harga_beli'  => '',
+            'jumlah'      => '',
+            'subtotal'    => '',
+            'aksi'        => '',
+        ];
+
+        return datatables()
+            ->of($data)
+            ->addIndexColumn()
+            ->rawColumns(['aksi', 'kode_produk', 'jumlah'])
+            ->make(true);
     }
 
     public function store(Request $request)
